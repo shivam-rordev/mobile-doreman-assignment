@@ -49,7 +49,22 @@ class UserDataTransformationService
 
    # Collate the data
   def collect_data
-    # select data if it has first name and last name
-    users_data.select{|user| user if user["firstName"].present? && user["lastName"].present?}
+    # select data if it has first name and last name and remove duplicate
+    user_list = []
+    grouped_data = users_data.group_by { |user| [user['firstName'], user['lastName']] }
+    grouped_data.keys.each do |key|
+      user_hash = {}
+      grouped_data[key].each_with_index do |data, index|
+        if index == 0
+          user_hash = data
+        else
+          merged_data = user_hash.merge(data)
+          merged_data['moreData'].merge!(user_hash['moreData'])
+          user_hash = merged_data
+        end
+      end
+      user_list << user_hash
+    end
+    user_list
   end
 end
